@@ -20,6 +20,7 @@ import { FirstRunHint } from "./FirstRunHint";
 import { IntentChips } from "./IntentChips";
 import { IntentPalette } from "./IntentPalette";
 import { LatencyHud } from "./LatencyHud";
+import { JevExplainer } from "./JevExplainer";
 import { MorphContainer } from "./MorphContainer";
 import { RecentStack } from "./RecentStack";
 import { newId, type SavedItem, savedItems } from "@/lib/savedItems";
@@ -35,7 +36,12 @@ function useSearchFlags() {
   );
   return useMemo(() => {
     const p = new URLSearchParams(search);
-    return { debug: p.get("debug") === "1", demo: p.get("demo") === "1", loop: p.get("loop") === "1" };
+    return {
+      debug: p.get("debug") === "1",
+      explain: p.get("explain") === "1",
+      demo: p.get("demo") === "1",
+      loop: p.get("loop") === "1",
+    };
   }, [search]);
 }
 
@@ -347,6 +353,7 @@ export function Shapeshift() {
 
       <IntentPalette open={paletteOpen} onOpenChange={setPaletteOpen} onPick={pick} />
       <LatencyHud {...hud} large={flags.demo} />
+      {flags.explain && <JevExplainer result={result} mem={mem} text={text} />}
       {flags.debug && <DebugPanel result={result} mem={mem} gated={gated} />}
     </MotionConfig>
   );

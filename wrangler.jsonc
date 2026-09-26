@@ -2,6 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "main": ".open-next/worker.js",
   "name": "shapeshift",
+  "account_id": "f252e31e7d3420333f4d60bf154bc4eb",
   "compatibility_date": "2026-09-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {

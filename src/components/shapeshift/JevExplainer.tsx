@@ -85,7 +85,7 @@ export function JevExplainer({
   mem: DecideMemory;
   text: string;
 }) {
-  const [open, setOpen] = useState(1);
+  const [open, setOpen] = useState(2);
 
   const modelMs = result.error ? 0 : result.latencyMs;
   const total = Math.max(modelMs, 1);
@@ -142,7 +142,7 @@ export function JevExplainer({
   const active = steps[open] ?? steps[0];
 
   return (
-    <aside className="fixed inset-x-3 bottom-3 z-40 mx-auto flex max-w-2xl flex-col gap-2 rounded-xl border bg-card/95 p-3 shadow-[var(--shadow-lift)] backdrop-blur sm:inset-x-auto sm:end-4 sm:bottom-4 sm:w-[26rem]">
+    <aside className="mt-3 flex flex-col gap-2 rounded-xl border bg-card/60 p-3 text-start">
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 flex-col">
           <span className="text-[13px] font-medium text-foreground">How this answer happened</span>
@@ -150,17 +150,9 @@ export function JevExplainer({
             {text.trim() ? `"${text.trim().slice(0, 42)}"` : "waiting for input"}
           </span>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen(open === -1 ? 1 : -1)}
-          className="rounded-md border px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
-        >
-          {open === -1 ? "show" : "hide"}
-        </button>
       </div>
 
-      {open !== -1 && (
-        <>
+      <>
           <div className="flex flex-col gap-1">
             {steps.map((s, i) => (
               <Stage
@@ -209,8 +201,7 @@ export function JevExplainer({
               </div>
             ))}
           </div>
-        </>
-      )}
+      </>
     </aside>
   );
 }

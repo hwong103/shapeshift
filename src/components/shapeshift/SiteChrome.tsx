@@ -30,11 +30,12 @@ function GithubMark(props: React.ComponentProps<"svg">) {
   );
 }
 
-export async function SiteChrome() {
+export async function SiteChrome({ children }: { children?: React.ReactNode }) {
   const stars = await getStars();
   return (
     <>
-      <div className="fixed end-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-30 flex items-center gap-2">
+      <div className="fixed end-[max(1rem,env(safe-area-inset-right))] top-[max(1rem,env(safe-area-inset-top))] z-30 flex flex-wrap items-center justify-end gap-2">
+        {children}
         <a href="https://github.com/sponsors/anishfn" target="_blank" rel="noopener noreferrer" className={`group ${BUTTON}`}>
           <Heart
             aria-hidden

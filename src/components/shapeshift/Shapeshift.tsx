@@ -25,24 +25,28 @@ import { MorphContainer } from "./MorphContainer";
 import { RecentStack } from "./RecentStack";
 import { newId, type SavedItem, savedItems } from "@/lib/savedItems";
 import { notify } from "@/lib/notify";
+import { explainStore } from "@/lib/explain-store";
 
-const subscribeNoop = () => () => {};
+const readSearch = () => window.location.search;
+
+/** Re-read the URL on back/forward and on our own history.replaceState calls. */
+function popStateSubscribe(onChange: () => void) {
+  window.addEventListener("popstate", onChange);
+  return () => window.removeEventListener("popstate", onChange);
+}
 
 function useSearchFlags() {
-  const search = useSyncExternalStore(
-    subscribeNoop,
-    () => window.location.search,
-    () => "",
-  );
+  const search = useSyncExternalStore(popStateSubscribe, readSearch, () => "");
+  const explain = useSyncExternalStore(explainStore.subscribe, explainStore.get, () => false);
   return useMemo(() => {
     const p = new URLSearchParams(search);
     return {
       debug: p.get("debug") === "1",
-      explain: p.get("explain") === "1",
+      explain,
       demo: p.get("demo") === "1",
       loop: p.get("loop") === "1",
     };
-  }, [search]);
+  }, [search, explain]);
 }
 
 /** Everything about the current card that isn't the typed data itself. */
@@ -72,6 +76,12 @@ function IntentCard<K extends CardIntent>(props: {
 
 export function Shapeshift() {
   const flags = useSearchFlags();
+  // Keep the explainer in step with back/forward navigation.
+  useEffect(() => {
+    explainStore.sync();
+    window.addEventListener("popstate", explainStore.sync);
+    return () => window.removeEventListener("popstate", explainStore.sync);
+  }, []);
   const reduce = useReducedMotion();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -334,6 +344,8 @@ export function Shapeshift() {
 
         <FirstRunHint show={!intent && ui.kind !== "choose" && saved.length === 0 && !flags.demo} />
 
+        {flags.explain && <JevExplainer result={result} mem={mem} text={text} />}
+
         <IntentChips
           options={ui.kind === "choose" ? ui.options : null}
           probabilities={result.intent.probabilities}
@@ -353,7 +365,6 @@ export function Shapeshift() {
 
       <IntentPalette open={paletteOpen} onOpenChange={setPaletteOpen} onPick={pick} />
       <LatencyHud {...hud} large={flags.demo} />
-      {flags.explain && <JevExplainer result={result} mem={mem} text={text} />}
       {flags.debug && <DebugPanel result={result} mem={mem} gated={gated} />}
     </MotionConfig>
   );

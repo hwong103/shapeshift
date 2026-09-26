@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 
 import type { DecideMemory } from "@/lib/decide";
-import type { IntentResult } from "@/lib/jev/types";
+import type { Answer, IntentResult } from "@/lib/jev/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -34,6 +34,15 @@ function Bar({ ms, max, tone }: { ms: number | null; max: number; tone: string }
         transition={reduceMotion ? { duration: 0 } : { duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       />
     </div>
+  );
+}
+
+function SignalRow({ label, text }: { label: string; text: string }) {
+  return (
+    <>
+      <span className="truncate text-[11px] text-muted-foreground">{label}</span>
+      <span className="text-end text-[11px] tabular-nums text-foreground">{text}</span>
+    </>
   );
 }
 
@@ -93,6 +102,25 @@ export function JevExplainer({
   const topIntents = Object.entries(result.intent.probabilities)
     .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0))
     .slice(0, 5);
+
+  // The other 13 answers from the same call. Nouls (is this a question?) and
+  // scores (how urgent?) arrive as plain numbers; the choice questions carry a
+ // full probability spread, which is where the useful detail lives.
+  const nouls: [string, number][] = [
+    ["is a question", result.signals.isQuestion],
+    ["recurring", result.signals.recurring],
+    ["explicit options", result.signals.hasExplicitOptions],
+    ["shopping list", result.signals.isShoppingList],
+  ];
+  const choices: [string, Answer<string>][] = [
+    ["tone", result.signals.tone],
+    ["event mode", result.signals.eventMode],
+    ["transport", result.signals.transport],
+    ["trip type", result.signals.tripType],
+    ["expense", result.signals.expenseCategory],
+    ["colour mood", result.signals.colorMood],
+    ["timer kind", result.signals.timerKind],
+  ];
 
   const steps: Step[] = [
     {
@@ -200,6 +228,35 @@ export function JevExplainer({
                 </span>
               </div>
             ))}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] text-muted-foreground">
+              the other {Math.max(0, result.questionCount - 1)} answers from the same call
+            </span>
+
+            <div className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1">
+              <span className="text-[11px] text-muted-foreground">readiness</span>
+              <span className="text-end text-[11px] tabular-nums text-foreground">
+                {result.readiness.toFixed(2)}
+              </span>
+
+              <span className="text-[11px] text-muted-foreground">urgency</span>
+              <span className="text-end text-[11px] tabular-nums text-foreground">
+                {result.signals.urgency.score.toFixed(2)}{" "}
+                <span className="text-muted-foreground">
+                  ±{result.signals.urgency.confidence.toFixed(2)}
+                </span>
+              </span>
+
+              {nouls.map(([label, v]) => (
+                <SignalRow key={label} label={label} text={v.toFixed(2)} />
+              ))}
+
+              {choices.map(([label, a]) => (
+                <SignalRow key={label} label={label} text={`${a.value} ${a.confidence.toFixed(2)}`} />
+              ))}
+            </div>
           </div>
       </>
     </aside>

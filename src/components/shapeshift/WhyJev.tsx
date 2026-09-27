@@ -117,11 +117,11 @@ function ConfidenceBar({ value, tone }: { value: number; tone: "sky" | "brand" }
  * unfixable way: it cannot see negation, and it cannot infer a task from a verb
  * it was never taught. Every row below is a real recorded result.
  */
-export function WhyJev() {
+export function WhyJev({ bare = false }: { bare?: boolean }) {
   const [open, setOpen] = useState<string | null>(CASES[0].text);
 
   return (
-    <div className="mt-3 flex flex-col gap-2 rounded-xl border bg-card/60 p-3">
+    <div className={cn(bare ? "flex flex-col gap-2" : "mt-3 flex flex-col gap-2 rounded-xl border bg-card/60 p-3")}>
       <div className="flex flex-col gap-0.5">
         <span className="text-[13px] font-medium text-foreground">When the simple rule gets it wrong</span>
         <span className="text-[11px] leading-4 text-muted-foreground">

@@ -89,10 +89,13 @@ export function JevExplainer({
   result,
   mem,
   text,
+  bare = false,
 }: {
   result: IntentResult;
   mem: DecideMemory;
   text: string;
+  /** True when a parent already provides the card frame. */
+  bare?: boolean;
 }) {
   const [open, setOpen] = useState(2);
 
@@ -170,7 +173,7 @@ export function JevExplainer({
   const active = steps[open] ?? steps[0];
 
   return (
-    <aside className="mt-3 flex flex-col gap-2 rounded-xl border bg-card/60 p-3 text-start">
+    <aside className={cn(bare ? "flex flex-col gap-2 text-start" : "mt-3 flex flex-col gap-2 rounded-xl border bg-card/60 p-3 text-start")}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 flex-col">
           <span className="text-[13px] font-medium text-foreground">What happened just now</span>

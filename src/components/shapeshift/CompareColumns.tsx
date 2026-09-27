@@ -23,7 +23,7 @@ const ACCENT: Record<string, string> = {
  * The three columns that sit under the explainer. Same input, three ways of
  * reaching an answer — so the differences are visible rather than asserted.
  */
-export function CompareColumns({ text }: { text: string }) {
+export function CompareColumns({ text, bare = false }: { text: string; bare?: boolean }) {
   const [result, setResult] = useState<{ key: string; columns: Column[] } | null>(null);
   const reqId = useRef(0);
 
@@ -64,7 +64,7 @@ export function CompareColumns({ text }: { text: string }) {
   const offCard = columns.filter((c) => c.intent && !c.isCard).length;
 
   return (
-    <div className="mt-3 flex flex-col gap-1.5 rounded-xl border bg-card/60 p-3">
+    <div className={cn(bare ? "flex flex-col gap-1.5" : "mt-3 flex flex-col gap-1.5 rounded-xl border bg-card/60 p-3")}>
       <div className="flex items-center justify-between gap-2">
         <span className="text-[13px] font-medium text-foreground">Three ways to read your words</span>
         <span className="font-mono text-[11px] text-muted-foreground">

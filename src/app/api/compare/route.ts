@@ -15,17 +15,32 @@ export const runtime = "nodejs";
  */
 
 /** Workers AI model ids are namespaced; the bare name returns 5007. */
-/** Cheapest useful text model on Workers AI - it's a demo column, not the product. */
-const DEFAULT_LLM_MODEL = "@cf/meta/llama-3.2-1b-instruct";
+/**
+ * The 1B model is too small to hold the output format - it echoes the prompt
+ * or returns the object of the sentence instead of a card name. The 3B holds
+ * it reliably and is still cheap (and, in practice, no slower). It's a demo
+ * column, not the product, so cost is not the constraint - fairness is.
+ */
+const DEFAULT_LLM_MODEL = "@cf/meta/llama-3.2-3b-instruct";
 
 /** The `AI` binding declared in wrangler.jsonc. */
 type AiBinding = {
   run: (model: string, input: unknown, options?: unknown) => Promise<unknown>;
 };
 
-/** Workers AI returns a string from text models, but some return a content array. */
+/**
+ * Workers AI shapes text-model output differently per model family: some return
+ * a bare string, some a content array, and some nest the answer under
+ * `choices[0].message.content` like an OpenAI chat response. Normalise all of
+ * them, otherwise a perfectly good answer is read as empty.
+ */
 function normaliseResponse(response: unknown): string {
   if (typeof response === "string") return response;
+  // When Workers AI can parse the model's output it hands back an object. The
+   // model DID answer; returning "{}" here would silently discard it.
+  if (response && typeof response === "object" && !Array.isArray(response)) {
+    return JSON.stringify(response);
+  }
   if (Array.isArray(response)) {
     return response
       .map((part) =>
@@ -35,6 +50,12 @@ function normaliseResponse(response: unknown): string {
   }
   if (response && typeof response === "object" && "text" in response) {
     return String((response as { text: unknown }).text);
+  }
+  const choices = (response as { choices?: unknown } | null)?.choices;
+  if (Array.isArray(choices) && choices.length > 0) {
+    const first = choices[0] as { message?: { content?: unknown }; text?: unknown };
+    if (typeof first?.message?.content === "string") return first.message.content;
+    if (typeof first?.text === "string") return first.text;
   }
   return "{}";
 }
@@ -62,6 +83,7 @@ type Column = {
   confidence: number | null;
   ms: number;
   note?: string;
+  raw?: string;
 };
 
 type JevOutcome =
@@ -99,10 +121,11 @@ async function runLlm(text: string, signal: AbortSignal, ai?: AiBinding, model?:
         max_tokens: 64,
       },
       { signal },
-    )) as { response?: string };
+    )) as { response?: unknown };
 
     // Text models return a string; some newer ones return a content array.
     const raw = normaliseResponse(res?.response);
+    if (process.env.COMPARE_DEBUG) console.log("[shape]", JSON.stringify(res).slice(0, 700));
     const match = raw.match(/\{[\s\S]*\}/);
     let intent: string | undefined;
     let confidence: number | undefined;
@@ -133,6 +156,7 @@ async function runLlm(text: string, signal: AbortSignal, ai?: AiBinding, model?:
       note: echoed
         ? `Workers AI · ${modelId} · echoed the prompt back instead of answering`
         : `Workers AI · ${modelId}`,
+      raw: raw.slice(0, 200),
     };
   } catch (err) {
     return {

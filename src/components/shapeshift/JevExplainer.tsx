@@ -107,61 +107,61 @@ export function JevExplainer({
   // scores (how urgent?) arrive as plain numbers; the choice questions carry a
  // full probability spread, which is where the useful detail lives.
   const nouls: [string, number][] = [
-    ["is a question", result.signals.isQuestion],
-    ["recurring", result.signals.recurring],
-    ["explicit options", result.signals.hasExplicitOptions],
-    ["shopping list", result.signals.isShoppingList],
+    ["is it a question?", result.signals.isQuestion],
+    ["does it repeat?", result.signals.recurring],
+    ["are there choices?", result.signals.hasExplicitOptions],
+    ["is it a shopping list?", result.signals.isShoppingList],
   ];
   const choices: [string, Answer<string>][] = [
-    ["tone", result.signals.tone],
-    ["event mode", result.signals.eventMode],
-    ["transport", result.signals.transport],
-    ["trip type", result.signals.tripType],
-    ["expense", result.signals.expenseCategory],
-    ["colour mood", result.signals.colorMood],
-    ["timer kind", result.signals.timerKind],
+    ["mood", result.signals.tone],
+    ["in person or online?", result.signals.eventMode],
+    ["how?", result.signals.transport],
+    ["kind of trip?", result.signals.tripType],
+    ["what kind of cost?", result.signals.expenseCategory],
+    ["what colour?", result.signals.colorMood],
+    ["counting up or down?", result.signals.timerKind],
   ];
 
   const steps: Step[] = [
     {
       id: "keystroke",
       label: "You type",
-      detail: "Text is held locally. Nothing is sent on every character — a 120ms debounce waits for a pause.",
+      detail: "Nothing happens yet. The app waits 120ms after you stop typing, so it doesn't ask about half-words.",
       ms: 120,
       actor: "browser",
     },
     {
       id: "cache",
-      label: "Browser cache check",
-      detail: "Repeated text is answered from a local LRU without touching the network.",
+      label: "Seen this before?",
+      detail: "If you typed this exact thing earlier, the answer is already saved on your device. No asking needed.",
       ms: result.cached ? 0 : 1,
       actor: "browser",
     },
     {
       id: "jev",
-      label: "Jev answers 14 questions at once",
-      detail: `One call to ${result.model}. It picks the card type and reads signals like urgency, tone and whether it's a video call — but never extracts dates or does arithmetic.`,
+      label: "Jev reads it",
+      detail: `One quick trip to ${result.model}. Jev only decides WHICH card to show. It never works out dates or does sums.`,
       ms: result.cached ? 0 : modelMs,
       actor: "model",
     },
     {
       id: "gate",
-      label: "Signals are gated",
-      detail: "Raw confidence is smoothed with a hysteresis band so badges don't flicker while you type.",
+      label: "Calm things down",
+      detail: "Jev's answer gets smoothed out, so little tags don't flicker on and off while you type.",
       ms: 1,
       actor: "code",
     },
     {
       id: "decide",
-      label: "A challenger must win twice",
-      detail: "The card only changes when a new intent wins two keystrokes in a row, or is very confident. That's what stops the card thrashing.",
+      label: "Wait, are you sure?",
+      detail: "A different card has to win TWICE in a row before the screen changes. That's what stops it jumping around.",
       ms: 1,
       actor: "code",
     },
     {
       id: "parse",
-      label: "Deterministic parsers fill the card",
-      detail: "Dates, amounts, units and colours are computed by ordinary code reading the same text. Jev decided; code computed.",
+      label: "Fill in the card",
+      detail: "Ordinary computer code works out the details, like what \"8pm\" means. Jev picks the card; the code fills it in.",
       ms: 1,
       actor: "code",
     },
@@ -173,7 +173,7 @@ export function JevExplainer({
     <aside className="mt-3 flex flex-col gap-2 rounded-xl border bg-card/60 p-3 text-start">
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 flex-col">
-          <span className="text-[13px] font-medium text-foreground">How this answer happened</span>
+          <span className="text-[13px] font-medium text-foreground">What happened just now</span>
           <span className="truncate font-mono text-[11px] text-muted-foreground">
             {text.trim() ? `"${text.trim().slice(0, 42)}"` : "waiting for input"}
           </span>
@@ -213,7 +213,7 @@ export function JevExplainer({
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] text-muted-foreground">intent distribution</span>
+            <span className="text-[11px] text-muted-foreground">how sure each card is</span>
             {topIntents.map(([k, v]) => (
               <div key={k} className="flex items-center gap-2">
                 <span className="w-16 truncate text-[11px] text-foreground">{k}</span>
@@ -232,7 +232,7 @@ export function JevExplainer({
 
           <div className="flex flex-col gap-1.5">
             <span className="text-[11px] text-muted-foreground">
-              the other {Math.max(0, result.questionCount - 1)} answers from the same call
+              other things Jev noticed
             </span>
 
             <div className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1">

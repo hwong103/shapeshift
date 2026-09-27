@@ -66,13 +66,13 @@ export function CompareColumns({ text }: { text: string }) {
   return (
     <div className="mt-3 flex flex-col gap-1.5 rounded-xl border bg-card/60 p-3">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[13px] font-medium text-foreground">Three ways to answer</span>
+        <span className="text-[13px] font-medium text-foreground">Three ways to read your words</span>
         <span className="font-mono text-[11px] text-muted-foreground">
           {offCard > 0
-            ? `${offCard} not a card type`
+            ? `${offCard} gave a strange answer`
             : distinct === 1
-              ? "all agree"
-              : `${distinct} distinct answers`}
+              ? "they all agree"
+              : `they gave ${distinct} different answers`}
         </span>
       </div>
 

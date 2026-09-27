@@ -22,7 +22,7 @@ const CASES: Row[] = [
     jev: "note",
     jevConf: 0.9,
     right: "jev",
-    why: "Contains 'meeting' and 'tomorrow', so the keyword rules fire. Regex has no concept of 'no'.",
+    why: "It has the words 'meeting' and 'tomorrow', so the rule jumps in. The rule can't see that the 'no' changes everything.",
   },
   {
     text: "not a reminder",
@@ -31,7 +31,7 @@ const CASES: Row[] = [
     jev: "note",
     jevConf: 0.67,
     right: "jev",
-    why: "Same trap: the word 'reminder' is present, and negation is invisible to a pattern.",
+    why: "Same trap. The word 'reminder' is right there, but the rule can't tell you actually don't want one.",
   },
   {
     text: "didn't split the bill",
@@ -40,7 +40,7 @@ const CASES: Row[] = [
     jev: "note",
     jevConf: 0.39,
     right: "jev",
-    why: "'split' appears with a number nearby, which is the rule's exact trigger.",
+    why: "The rule looks for 'split' near a number. This has both, so it fires — even though you didn't split anything.",
   },
   {
     text: "remember the milk",
@@ -49,7 +49,7 @@ const CASES: Row[] = [
     jev: "reminder",
     jevConf: 0.96,
     right: "jev",
-    why: "The rules only list 'remind me to' and 'don't forget'. 'Remember' on its own falls through.",
+    why: "The rule only knows the phrase 'remind me to'. You said 'remember', so nothing matched and it gave up.",
   },
   {
     text: "pay rent",
@@ -58,7 +58,7 @@ const CASES: Row[] = [
     jev: "reminder",
     jevConf: 0.53,
     right: "jev",
-    why: "No trigger word at all. Regex gives up; Jev infers a task from the verb.",
+    why: "There are no special words here at all. Jev worked out that 'pay' means it's a job to remember.",
   },
   {
     text: "maybe grab lunch sometime",
@@ -67,7 +67,7 @@ const CASES: Row[] = [
     jev: "event",
     jevConf: 0.99,
     right: "regex",
-    why: "Hedged language, but the noun is decisive. Both land here - and notice regex is less sure.",
+    why: "Both got it right! But look at the bars — Jev is much more sure, and regex isn't.",
   },
   {
     text: "cancel my dentist appointment",
@@ -76,7 +76,7 @@ const CASES: Row[] = [
     jev: "event",
     jevConf: 0.39,
     right: "neither",
-    why: "'Cancel' is an action, not a scheduling one. Jev is unsure (0.39) and the app waits rather than guessing.",
+    why: "Tricky one. 'Cancel' is an action, not a plan. Jev isn't sure, so the app waits instead of showing a card.",
   },
   {
     text: "we should talk",
@@ -85,15 +85,15 @@ const CASES: Row[] = [
     jev: "note",
     jevConf: 0.34,
     right: "neither",
-    why: "Genuinely ambiguous. Both are low, which is the correct outcome - the card should not commit.",
+    why: "This one's genuinely unclear. Both are unsure, and that's the right answer — better to wait than show the wrong card.",
   },
 ];
 
 function Verdict({ right }: { right: Row["right"] }) {
   const map = {
-    jev: ["bg-brand/15 text-brand", "Jev right"],
-    regex: ["bg-sky-500/15 text-sky-600 dark:text-sky-400", "regex right"],
-    neither: ["bg-secondary text-muted-foreground", "both unsure"],
+    jev: ["bg-brand/15 text-brand", "Jev was right"],
+    regex: ["bg-sky-500/15 text-sky-600 dark:text-sky-400", "the rule was right"],
+    neither: ["bg-secondary text-muted-foreground", "neither is sure"],
   } as const;
   const [cls, label] = map[right];
   return <span className={cn("shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium", cls)}>{label}</span>;
@@ -123,9 +123,9 @@ export function WhyJev() {
   return (
     <div className="mt-3 flex flex-col gap-2 rounded-xl border bg-card/60 p-3">
       <div className="flex flex-col gap-0.5">
-        <span className="text-[13px] font-medium text-foreground">Where regex breaks</span>
+        <span className="text-[13px] font-medium text-foreground">When the simple rule gets it wrong</span>
         <span className="text-[11px] leading-4 text-muted-foreground">
-          Measured, not asserted. Click a row for the reason it fails.
+          Two ways of reading your words. These are real results — tap any line to see why.
         </span>
       </div>
 
@@ -178,9 +178,9 @@ export function WhyJev() {
       </div>
 
       <p className="text-[11px] leading-4 text-muted-foreground">
-        <span className="text-foreground">Honest summary:</span> Jev wins the cases regex structurally cannot
-        reach, and loses nothing, because it was not winning those to begin with. Where Jev is unsure it says so,
-        and the app waits instead of committing a wrong card.
+        <span className="text-foreground">The short version:</span> the simple rule only knows the exact words it was
+        given. Jev understands what you mean. And when Jev is unsure too, the app waits instead of showing you
+        the wrong card.
       </p>
     </div>
   );

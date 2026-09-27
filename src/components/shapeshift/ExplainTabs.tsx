@@ -8,10 +8,12 @@ import type { IntentResult } from "@/lib/jev/types";
 
 import { CompareColumns } from "./CompareColumns";
 import { JevExplainer } from "./JevExplainer";
+import { JevQuestions } from "./JevQuestions";
 import { WhyJev } from "./WhyJev";
 
 const TABS = [
   { id: "now", label: "What happened" },
+  { id: "questions", label: "The questions" },
   { id: "compare", label: "Three ways" },
   { id: "rule", label: "When rules fail" },
 ] as const;
@@ -48,6 +50,7 @@ export function ExplainTabs({ result, mem, text }: { result: IntentResult; mem: 
 
       <div className="rounded-xl border bg-card/60 p-3">
         {tab === "now" && <JevExplainer result={result} mem={mem} text={text} bare />}
+        {tab === "questions" && <JevQuestions result={result} />}
         {tab === "compare" && <CompareColumns text={text} bare />}
         {tab === "rule" && <WhyJev bare />}
       </div>

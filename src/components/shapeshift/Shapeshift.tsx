@@ -345,9 +345,9 @@ export function Shapeshift() {
 
         <FirstRunHint show={!intent && ui.kind !== "choose" && saved.length === 0 && !flags.demo} />
 
-        {flags.explain && <JevExplainer result={result} mem={mem} text={text} />}
-
         {flags.explain && <CompareColumns text={text} />}
+
+        {flags.explain && <JevExplainer result={result} mem={mem} text={text} />}
 
         <IntentChips
           options={ui.kind === "choose" ? ui.options : null}

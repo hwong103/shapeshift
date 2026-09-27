@@ -57,6 +57,8 @@ function getAi(): AiBinding | undefined {
 type Column = {
   label: string;
   intent: string | null;
+  /** False when the model returned prose instead of one of the card names. */
+  isCard: boolean;
   confidence: number | null;
   ms: number;
   note?: string;
@@ -70,6 +72,7 @@ async function runLlm(text: string, signal: AbortSignal, ai?: AiBinding, model?:
   const offline = {
     label: "general LLM",
     intent: null,
+    isCard: false,
     confidence: null,
     ms: 0,
     note: "AI binding unavailable (running locally?)",
@@ -118,6 +121,7 @@ async function runLlm(text: string, signal: AbortSignal, ai?: AiBinding, model?:
     return {
       label: "general LLM",
       intent: snapped ?? intent ?? "unparsed",
+      isCard: Boolean(snapped),
       confidence: confidence ?? null,
       ms: Math.round(performance.now() - started),
       note: `Workers AI · ${modelId}`,
@@ -126,6 +130,7 @@ async function runLlm(text: string, signal: AbortSignal, ai?: AiBinding, model?:
     return {
       label: "general LLM",
       intent: null,
+      isCard: false,
       confidence: null,
       ms: Math.round(performance.now() - started),
       note: `unavailable: ${err instanceof Error ? err.message : "error"}`,
@@ -155,6 +160,7 @@ export async function POST(request: Request) {
       {
         label: "regex",
         intent: regex.intent.value,
+        isCard: true,
         confidence: regex.intent.confidence,
         ms: 0,
         note: "offline keyword classifier",
@@ -162,6 +168,7 @@ export async function POST(request: Request) {
       {
         label: "jev",
         intent: jev.ok ? jev.value.intent.value : null,
+        isCard: jev.ok,
         confidence: jev.ok ? jev.value.intent.confidence : null,
         ms: jev.ok ? jev.value.latencyMs : 0,
         note: jev.ok ? `${jev.value.questionCount} questions, one call` : `failed: ${jev.error}`,

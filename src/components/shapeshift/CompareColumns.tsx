@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 type Column = {
   label: string;
   intent: string | null;
+  isCard: boolean;
   confidence: number | null;
   ms: number;
   note?: string;
@@ -56,14 +57,22 @@ export function CompareColumns({ text }: { text: string }) {
   // Don't show a result computed for text the user has since changed.
   if (!result || result.key !== key) return null;
   const columns = result.columns;
-  const distinct = new Set(columns.filter((c) => c.intent).map((c) => c.intent)).size;
+  // Only real card names count as an answer. A model that replied with prose
+  // hasn't disagreed, it just failed to classify.
+  const named = columns.filter((c) => c.intent && c.isCard).map((c) => c.intent);
+  const distinct = new Set(named).size;
+  const offCard = columns.filter((c) => c.intent && !c.isCard).length;
 
   return (
     <div className="mt-3 flex flex-col gap-1.5 rounded-xl border bg-card/60 p-3">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[13px] font-medium text-foreground">Three ways to answer</span>
         <span className="font-mono text-[11px] text-muted-foreground">
-          {distinct === 1 ? "all agree" : `${distinct} distinct answers`}
+          {offCard > 0
+            ? `${offCard} not a card type`
+            : distinct === 1
+              ? "all agree"
+              : `${distinct} distinct answers`}
         </span>
       </div>
 
@@ -75,7 +84,9 @@ export function CompareColumns({ text }: { text: string }) {
               <span className="font-mono text-[11px] tabular-nums text-muted-foreground">
                 {c.intent ? (
                   <>
-                    {c.intent}
+                    <span className={c.isCard ? "text-foreground" : "text-amber-600 dark:text-amber-400"}>
+                      {c.intent}
+                    </span>
                     {c.confidence !== null && ` · ${c.confidence.toFixed(2)}`}
                     {c.ms > 0 && ` · ${c.ms}ms`}
                   </>

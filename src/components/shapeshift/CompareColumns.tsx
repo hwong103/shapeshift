@@ -91,7 +91,7 @@ export function CompareColumns({ text }: { text: string }) {
                     {c.ms > 0 && ` · ${c.ms}ms`}
                   </>
                 ) : (
-                  "—"
+                  <span className="text-amber-600 dark:text-amber-400">no answer</span>
                 )}
               </span>
             </div>

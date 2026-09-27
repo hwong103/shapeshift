@@ -111,20 +111,28 @@ async function runLlm(text: string, signal: AbortSignal, ai?: AiBinding, model?:
       intent = parsed.intent;
       confidence = typeof parsed.confidence === "number" ? parsed.confidence : undefined;
     } catch {
-      // Small models often answer in prose. Falling back to the raw text keeps
-      // the column informative instead of blank.
-      intent = raw.trim().slice(0, 40) || undefined;
+      // Small models often answer in prose. Show a short excerpt so the column
+      // still says something, but mark it as prose rather than a label.
+      const prose = raw.trim().replace(/\s+/g, " ").slice(0, 48);
+      intent = prose && prose !== text.trim() ? prose : undefined;
     }
+    // Small models often echo the prompt instead of classifying it. That isn't
+    // a wrong answer, it's no answer at all, so don't dress it up as one.
+    const echoed = typeof intent === "string" && intent.trim().toLowerCase() === text.trim().toLowerCase();
+    if (echoed) intent = undefined;
+
     // Snap a near-miss onto a real card name so the three columns line up.
     const known = intent?.toLowerCase().trim();
     const snapped = known ? INTENT_KEYS.find((k) => k === known) : undefined;
     return {
       label: "general LLM",
-      intent: snapped ?? intent ?? "unparsed",
+      intent: snapped ?? intent ?? null,
       isCard: Boolean(snapped),
       confidence: confidence ?? null,
       ms: Math.round(performance.now() - started),
-      note: `Workers AI · ${modelId}`,
+      note: echoed
+        ? `Workers AI · ${modelId} · echoed the prompt back instead of answering`
+        : `Workers AI · ${modelId}`,
     };
   } catch (err) {
     return {

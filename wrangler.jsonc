@@ -9,6 +9,9 @@
     "binding": "ASSETS",
     "directory": ".open-next/assets"
   },
+  "ai": {
+    "binding": "AI"
+  },
   "routes": [
     {
       "pattern": "shapeshifter.hwong103.work",

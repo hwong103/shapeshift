@@ -22,6 +22,7 @@ import { IntentPalette } from "./IntentPalette";
 import { LatencyHud } from "./LatencyHud";
 import { JevExplainer } from "./JevExplainer";
 import { CompareColumns } from "./CompareColumns";
+import { WhyJev } from "./WhyJev";
 import { MorphContainer } from "./MorphContainer";
 import { RecentStack } from "./RecentStack";
 import { newId, type SavedItem, savedItems } from "@/lib/savedItems";
@@ -346,6 +347,8 @@ export function Shapeshift() {
         <FirstRunHint show={!intent && ui.kind !== "choose" && saved.length === 0 && !flags.demo} />
 
         {flags.explain && <CompareColumns text={text} />}
+
+        {flags.explain && <WhyJev />}
 
         {flags.explain && <JevExplainer result={result} mem={mem} text={text} />}
 
